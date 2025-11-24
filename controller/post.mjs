@@ -25,8 +25,9 @@ export async function getPost(req, res, next) {
 
 // 포스트를 작성하는 함수
 export async function createPost(req, res, next) {
-  const { userid, name, text } = req.body;
-  const post = await postRepository.create(userid, name, text);
+  const { text } = req.body;
+  console.log("req.useridx: ", req.idx);
+  const post = await postRepository.create(text, req.idx);
   res.status(201).json(post);
 }
 
