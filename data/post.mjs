@@ -42,44 +42,46 @@ let posts = [
 ];
 
 // 모든 포스트를 리턴
-export async function getAll(){
-    return posts;
+export async function getAll() {
+  return posts;
 }
 
 // 사용자 아이디(user id)에 대한 포스트를 리턴
 export async function getAllByUserid(userid) {
-    return posts.filter((post) => post.userid === userid);
-    }
+  return posts.filter((post) => post.userid === userid);
+}
 
 // 글 번호(id)에 대한 포스트를 리턴
 export async function getById(id) {
-    return posts.find((post) => post.id === id);
+  return posts.find((post) => post.id === id);
 }
 // id는 단일 데이터이기 때문에 filter를 쓸 필요 없음
+// Filter 와 validator가 다른 이유: 필터는 전체를 훑어서 필요한 값만 추출,
+// validator는 한 문단의 검열할 값만 실행
 
-// 포스트를 작성 
+// 포스트를 작성
 export async function create(userid, name, text) {
-    const post = {
-        id: Date.now().toString(),
-        userid,
-        name,
-        text,
-        createdAt: Date.now().toString(),
-    };
-    posts = [post, ...posts] // 
-    return post;
+  const post = {
+    id: Date.now().toString(),
+    userid,
+    name,
+    text,
+    createdAt: Date.now().toString(),
+  };
+  posts = [post, ...posts]; //
+  return post;
 }
 
 // 포스트를 변경
 export async function update(id, text) {
-    const post = posts.find((post) => post.id === id);
-    if (post) {
+  const post = posts.find((post) => post.id === id);
+  if (post) {
     post.text = text;
-}
-return post;
+  }
+  return post;
 }
 
 // 포스트 삭제
 export async function remove(id) {
-    posts = posts.filter((post) => post.id !== id );
+  posts = posts.filter((post) => post.id !== id);
 }

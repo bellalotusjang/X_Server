@@ -13,6 +13,22 @@ export const isAuth = async (req, res, next) => {
   }
   // Authorization: Bearer QWERITYIOUIOW ==
   const token = authHeader.split(" ")[1];
-  console.log("토큰 분리 성공?");
-  next();
+  // console.log("토큰 분리 성공?");
+
+  jwt.verify(token, "abcdefg1234!@#$", async (error, decoded) => {
+    if (error) {
+      console.log("토큰 에러");
+      return res.status(401).json(AUTH_ERROR);
+    }
+    console.log(decoded);
+    const user = await authRepository.findById(decoded.id);
+    if (!user) {
+      console.log("아이디 없음");
+      return res.status(401).json(AUTH_ERROR);
+    }
+    console.log("user.id: ", user.id);
+    console.log("user.userid: ", user.userid);
+    req.userid = user.userid;
+    next();
+  });
 };
