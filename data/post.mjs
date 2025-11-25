@@ -1,87 +1,66 @@
-let posts = [
-  {
-    id: "1",
-    name: "김사과",
-    userid: "apple",
-    text: "Node.js 배우는 중인데 Express 진짜 편하다! :로켓:",
-    createdAt: Date.now().toString(),
-    url: "https://randomuser.me/api/portraits/women/32.jpg",
-  },
-  {
-    id: "2",
-    name: "오렌지",
-    userid: "orange",
-    text: "오늘의 커피 :커피:️ + 코딩 = 최고의 조합!",
-    createdAt: Date.now().toString(),
-    url: "https://randomuser.me/api/portraits/men/44.jpg",
-  },
-  {
-    id: "3",
-    name: "이메론",
-    userid: "melon",
-    text: "Elasticsearch 연동 완료! 실시간 검색 API 짜릿해 :돋보기:",
-    createdAt: Date.now().toString(),
-    url: "https://randomuser.me/api/portraits/men/11.jpg",
-  },
-  {
-    id: "4",
-    name: "반하나",
-    userid: "banana",
-    text: "JavaScript 비동기 너무 어렵다... Promises, async/await, 뭐가 뭔지 :울음:",
-    createdAt: Date.now().toString(),
-    url: "https://randomuser.me/api/portraits/women/52.jpg",
-  },
-  {
-    id: "5",
-    name: "채리",
-    userid: "cherry",
-    text: "새 프로젝트 시작! Express + MongoDB + EJS 조합 좋아요 :전구:",
-    createdAt: Date.now().toString(),
-    url: "https://randomuser.me/api/portraits/women/29.jpg",
-  },
-];
+import MongoDB from "mongodb";
+import { getUsers } from "../db/database.mjs";
+import * as UserRepository from "./auth.mjs";
+import { getPosts } from "../db/database.mjs";
+
+const ObjectId = MongoDB.ObjectId;
 
 // 모든 포스트를 리턴
 export async function getAll() {
-  return posts;
+  return getPosts().find().sort({ createAt: -1 }).toArray();
 }
 
 // 사용자 아이디(user id)에 대한 포스트를 리턴
 export async function getAllByUserid(userid) {
-  return posts.filter((post) => post.userid === userid);
+  return getPosts().find({ userid }).sort({ createAt: -1 }).toArray();
 }
 
 // 글 번호(id)에 대한 포스트를 리턴
 export async function getById(id) {
-  return posts.find((post) => post.id === id);
+  return getPosts()
+    .find({ _id: new ObjectId(id) })
+    .next()
+    .then(mapOptionalPost);
 }
+
 // id는 단일 데이터이기 때문에 filter를 쓸 필요 없음
 // Filter 와 validator가 다른 이유: 필터는 전체를 훑어서 필요한 값만 추출,
 // validator는 한 문단의 검열할 값만 실행
 
 // 포스트를 작성
-export async function create(userid, name, text) {
-  const post = {
-    id: Date.now().toString(),
-    userid,
-    name,
-    text,
-    createdAt: Date.now().toString(),
-  };
-  posts = [post, ...posts]; //
-  return post;
+export async function create(text, id) {
+  return UserRepository.findById(id)
+    .then((user) =>
+      getPosts().insertOne({
+        text,
+        createAt: new Date(),
+        idx: user.id,
+        name: user.name,
+        userid: user.userid,
+        url: user.url,
+      })
+    )
+    .then((result) => {
+      return getPosts().findOne({ _id: result.insertedId });
+    });
 }
 
 // 포스트를 변경
 export async function update(id, text) {
-  const post = posts.find((post) => post.id === id);
-  if (post) {
-    post.text = text;
-  }
-  return post;
+  return getPosts()
+    .findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      { $set: { text } },
+      { returnDocument: "after" }
+    )
+    .then((result) => result);
 }
 
 // 포스트 삭제
 export async function remove(id) {
-  posts = posts.filter((post) => post.id !== id);
+  return getPosts().deleteOne({ _id: new ObjectId(id) });
+}
+
+function mapOptionalPost(post) {
+  return post ? { ...post, id: post._id.toString() } : post;
 }
