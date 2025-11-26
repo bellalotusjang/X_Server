@@ -10,7 +10,7 @@ export async function getPosts(req, res, next) {
 }
 
 // await : 데이터 통신할때 ex)10초 정도 걸리는 데이터가 있을 경우
-// async : await가  1+1 관계
+// async : await와 1+1 관계
 
 // 하나의 포스트를 가져오는 함수
 export async function getPost(req, res, next) {
@@ -38,7 +38,7 @@ export async function updatePost(req, res, next) {
   if (!post) {
     return res.status(404).json({ message: `${id}의 포스트가 없습니다` });
   }
-  if (post.idx !== req.id) {
+  if (post.userIdx !== req.id) {
     return res.sendStatus(403);
   }
   const updated = await postRepository.update(id, text);
@@ -52,9 +52,11 @@ export async function deletePost(req, res, next) {
   if (!post) {
     return res.status(404).json({ message: `${id}의 포스트가 없습니다` });
   }
-  if (post.idx !== req.id) {
+  if (post.userIdx !== req.id) {
     return res.sendStatus(403);
   }
+  console.log(post);
+
   await postRepository.remove(id);
   res.sendStatus(204);
 }
